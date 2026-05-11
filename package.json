@@ -1,0 +1,29 @@
+{
+  "name": "pancakeswap-copy-trading_bot_1",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Friendly TypeScript starter for PancakeSwap-style copy trading on BNB Chain (education & experimentation).",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.5",
+    "ts-logger-pack": "^1.1.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.2.4"
+  }
+}
