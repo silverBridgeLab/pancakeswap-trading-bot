@@ -26,9 +26,9 @@ export class BlockPollLeaderWatcher {
     if (this.started) return;
     this.started = true;
     void this.loop();
-    this.provider.on('block', () => void this.touchFromHead());
-    this.logger.info('block poll watcher subscribed', {
-      hint: 'uses recent block lookback + new heads',
+    this.logger.info('block poll watcher pacing', {
+      intervalMs: this.cfg.POLL_INTERVAL_MS,
+      lookbackBlocks: this.cfg.LOOKBACK_BLOCKS,
     });
   }
 
