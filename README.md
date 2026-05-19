@@ -125,6 +125,80 @@ Other router methods (fee-on-transfer variants, multihop aggregators, limit orde
 
 ---
 
+## Configuration reference
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `RPC_URL_BSC` | *(required)* | HTTP or WebSocket JSON-RPC endpoint for BSC mainnet (chain id 56) |
+| `LEADER_ADDRESSES` | *(required)* | Space- or comma-separated `0x` addresses to watch (case-insensitive) |
+| `POLL_INTERVAL_MS` | `3500` | Milliseconds between block-head polls |
+| `LOOKBACK_BLOCKS` | `30` | Blocks scanned from head on startup / after lag |
+| `SIZE_NUMERATOR_BP` | `1000` | Follower size numerator (basis-point style integer) |
+| `SIZE_DENOMINATOR_BP` | `10000` | Follower size denominator — e.g. `1500/10000` = 15% of leader size |
+| `EXECUTION_MODE` | `dry-run` | `dry-run` (log only) or `live-stub` (integration hook, no broadcast) |
+| `VERBOSE_LOGS` | off | Set `1` or `true` for richer trace output |
+
+### Sizing examples
+
+| Numerator | Denominator | Effect |
+| --- | --- | --- |
+| `1000` | `10000` | Mirror 10% of leader input |
+| `1500` | `10000` | Mirror 15% |
+| `5000` | `10000` | Mirror 50% |
+| `10000` | `10000` | 1:1 sizing (still dry-run until you change execution) |
+
+Sizing applies to both `amountIn` and `amountOutMin` proportionally. Slippage tolerance mirrors the leader's ratio — tune carefully before live use.
+
+### Execution modes
+
+| Mode | Behavior | When to use |
+| --- | --- | --- |
+| `dry-run` | Logs `FollowerIntent`; **no wallet, no broadcast** | Learning, debugging decoders, tuning leaders |
+| `live-stub` | Warns that signing is not implemented; returns stub reference | Scaffold your `ethers.Wallet` + router encode path |
+
+To go live you implement `ExecutionAdapter.submit()` (see `src/executor/liveStub.ts`): encode the matching router function, set `deadline`, attach gas/nonce policy, and broadcast with a funded follower key. **Never commit private keys.**
+
+---
+
+## Development
+
+```bash
+npm run dev        # tsx watch — iterate quickly
+npm run typecheck  # tsc --noEmit
+npm run build      # emit dist/
+npm test           # vitest — sizing math unit tests
+```
+
+### Testing
+
+```bash
+npm test
+```
+
+Today tests cover proportional sizing in `src/engine/sizing.test.ts`. Extend with fixture calldata tests when you add decoders.
+
+### Troubleshooting
+
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| No logs after start | Leaders inactive or wrong addresses | Verify `LEADER_ADDRESSES`; pick active wallets on BscScan |
+| RPC errors / stalls | Public endpoint rate limits | Use a dedicated BSC RPC; try WSS for lower latency |
+| Missed swaps after restart | Lookback too small | Increase `LOOKBACK_BLOCKS` (max 500) |
+| Swaps not detected | Non-V2 router or unsupported method | Confirm tx targets `0x10ED…4024E`; extend decoder if needed |
+| `Invalid environment` on boot | Zod validation failed | Check `.env` types — numerics must be integers |
+
+---
+
+## Roadmap ideas
+
+- Decode fee-on-transfer and `swapExact*` variant selectors
+- Pool liquidity / price-impact guard before submitting follower txs
+- Per-leader sizing profiles and cooldown windows
+- Telegram or webhook alerts on mirrored intents
+- Private RPC + bundle submission research (advanced)
+
+---
+
 ## License
 
 MIT — build responsibly, disclose risks clearly, and treat other people's capital with care.
