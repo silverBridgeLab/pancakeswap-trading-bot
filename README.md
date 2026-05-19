@@ -72,6 +72,59 @@ Press `Ctrl+C` to stop. The shutdown line reports how many follower intents were
 
 ---
 
+## How it works
+
+```mermaid
+flowchart LR
+  RPC[BSC RPC / WSS] --> Watcher[BlockPollLeaderWatcher]
+  Watcher --> Decode[decodeLeaderRouterSwap]
+  Decode --> Loop[CopyTradingLoop]
+  Loop --> Size[scaleSignalToIntent]
+  Size --> Exec[ExecutionAdapter]
+  Exec --> DryRun[dry-run logs]
+  Exec --> LiveStub[live-stub hook]
+```
+
+1. **Watch** — `BlockPollLeaderWatcher` polls chain head on a fixed interval (`POLL_INTERVAL_MS`). On first run it scans the last `LOOKBACK_BLOCKS`; afterward it advances from the last processed block so restarts do not skip recent activity.
+2. **Filter** — Only transactions whose `from` is in `LEADER_ADDRESSES` and whose `to` is the PancakeSwap V2 router (`0x10ED…4024E`) are considered.
+3. **Decode** — Calldata is parsed with ethers `Interface` against three common router methods (see below). ETH-in swaps hydrate `amountInWei` from the transaction `value` field.
+4. **Dedupe** — `CopyTradingLoop` keys on the leader transaction hash so the same swap is never mirrored twice.
+5. **Size** — `scaleSignalToIntent` applies your ratio: `scaledAmount = leaderAmount × NUMERATOR / DENOMINATOR`.
+6. **Execute** — `ExecutionAdapter` receives a `FollowerIntent`. In `dry-run`, nothing is broadcast. In `live-stub`, you get a explicit warning and a placeholder reference — wire your signer here when ready.
+
+---
+
+## Architecture (source layout)
+
+| Path | Responsibility |
+| --- | --- |
+| `src/index.ts` | Bootstraps config, logger, watcher, copy loop, and graceful shutdown |
+| `src/watch/blockPollWatcher.ts` | RPC provider, block polling, leader tx filtering |
+| `src/router/decodeLeaderSwap.ts` | Router calldata → `SwapSignal` |
+| `src/router/routerAbi.ts` | ABI fragments for supported swap selectors |
+| `src/engine/copyLoop.ts` | Dedup + orchestration from signal to executor |
+| `src/engine/sizing.ts` | Proportional sizing math (`bigint`-safe) |
+| `src/executor/` | `dry-run` and `live-stub` adapters behind `ExecutionAdapter` |
+| `src/config.ts` | Zod-validated `.env` loading |
+| `src/constants.ts` | Router address and chain constants |
+
+### Supported leader swap types
+
+| Router method | `SwapSignal.kind` | Notes |
+| --- | --- | --- |
+| `swapExactTokensForTokens` | `exact-tokens` | Full amount in from calldata |
+| `swapExactETHForTokens` | `exact-eth-in` | Amount in from tx `value` |
+| `swapExactTokensForETH` | `exact-eth-out` | BNB out path |
+
+Other router methods (fee-on-transfer variants, multihop aggregators, limit orders) are **ignored** until you extend `decodeLeaderRouterSwap.ts`.
+
+### Core types
+
+- **`SwapSignal`** — what the leader did on-chain (path, amounts, correlation hash).
+- **`FollowerIntent`** — same signal plus `scaledAmountInWei` / `scaledAmountOutMinWei` for your follower wallet.
+
+---
+
 ## License
 
 MIT — build responsibly, disclose risks clearly, and treat other people's capital with care.
