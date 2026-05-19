@@ -1,73 +1,77 @@
 # Pancake Copy Companion #1
 
-**Ride the waves DeFi leaders make — without staring at charts all day.**
+**Follow smart-money router swaps on BNB Chain — learn the mechanics, stay in dry-run until you are ready.**
 
-This project is a calm, TypeScript-first companion for people who want to **learn** how automated “copy trading” ideas map onto [PancakeSwap](https://pancakeswap.finance/)-style routers on **BNB Smart Chain**. It watches recent blocks, spots simple router swaps from addresses you choose, and (by default) **only logs** what a follower wallet *would* do next.
+A TypeScript companion for studying how [PancakeSwap](https://pancakeswap.finance/) V2-style copy trading works on **BNB Smart Chain**. Point it at wallet addresses you want to observe, watch their router activity block-by-block, and see exactly what a follower wallet *would* submit — without sending a single transaction by default.
 
-> **Heads up:** This is an education and experimentation repo, not financial advice. On-chain activity involves serious risk (impermanent loss, MEV, rugs, failed txs, tax). Run `dry-run` until you fully understand every line you would change for live trading.
+> **Not financial advice.** On-chain trading carries real risk: failed transactions, MEV, illiquid pools, smart-contract bugs, and total loss of funds. Run `EXECUTION_MODE=dry-run` until you understand every line you would change for live execution.
 
-## Why people open this repo
+**Node 20+** · **TypeScript (strict)** · **ethers v6** · **PancakeSwap V2 router** · **dry-run by default**
 
-- You are curious how traders **encode** swaps on-chain and how a bot could **react** in near real time.
-- You want a **readable** codebase to extend (liquidity checks, custom filters, Telegram pings, your own signing flow).
-- You prefer **TypeScript** + strict types so refactors feel safe.
+---
 
-## What you get out of the box
+## Why this repo exists
 
-- **Leader detection** on the canonical PancakeSwap V2 router (`0x10ED…4024E`) by decoding common `swapExact*` calls.
-- **Proportional sizing** so you can mirror a fraction of a leader’s intent before you wire real execution.
-- **`ts-logger-pack`**-friendly logging that stays pleasant in both quiet and verbose modes.
-- **`dry-run` by default** so your keys never touch a hot path by accident.
+Most “copy trading bot” tutorials skip the interesting part: **how do you actually detect a leader swap, decode it, size it, and decide what to send next?** This project keeps that pipeline visible:
 
-## Quick start (five minutes)
-
-1. **Install** Node.js 20+.
-2. **Clone** and install deps:
-
-   ```bash
-   cd pancakeswap-copy-trading_bot_1
-   npm install
-   ```
-
-3. **Copy** the sample env and add a real HTTPS or WSS RPC plus leader addresses you study (not endorse!) for learning:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-4. **Run** in safe mode:
-
-   ```bash
-   npm run dev
-   ```
-
-5. When you are ready to compile:
-
-   ```bash
-   npm run build && npm start
-   ```
-
-## Configuration highlights
-
-| Variable | What it feels like |
+| You want to… | This repo gives you… |
 | --- | --- |
-| `LEADER_ADDRESSES` | The on-chain personalities you are learning from this week. |
-| `SIZE_NUMERATOR_BP` / `SIZE_DENOMINATOR_BP` | Your “volume knob” for how bold each mirrored intent is. |
-| `EXECUTION_MODE` | `dry-run` whispers the plan; `live-stub` reminds you where to solder your signer. |
-| `LOOKBACK_BLOCKS` | How much history we hydrate after a restart so you do not miss late-night moves. |
+| Learn how router calldata is structured | Decoders for `swapExact*` on the canonical Pancake V2 router |
+| Experiment without risking keys | `dry-run` executor that logs intents only |
+| Extend toward production safely | `ExecutionAdapter` interface + `live-stub` hook for your signer |
+| Restart without missing recent history | Configurable block lookback on startup |
+| Tune how aggressively you mirror size | Basis-point style `SIZE_NUMERATOR_BP` / `SIZE_DENOMINATOR_BP` |
 
-## Testing
+---
+
+## Quick start
+
+**1. Install** Node.js 20 or newer.
+
+**2. Clone and install dependencies:**
 
 ```bash
-npm test
+cd pancakeswap-copy-trading_bot_1
+npm install
 ```
 
-## Roadmap ideas (make it yours)
+**3. Configure environment:**
 
-- Slippage curves tied to pool depth or volatility oracles.
-- Cool-down windows so you are not spammed during arb storms.
-- Private RPC + flashbots-style submission research (advanced).
+```bash
+cp .env.example .env
+```
+
+Edit `.env` — at minimum set a reliable BSC RPC URL and one or more leader addresses (for learning/research only):
+
+```env
+RPC_URL_BSC=https://bsc-dataseed.binance.org
+LEADER_ADDRESSES=0xYourLeaderAddressHere
+EXECUTION_MODE=dry-run
+```
+
+**4. Run in development (watch mode, auto-reload):**
+
+```bash
+npm run dev
+```
+
+**5. Production build:**
+
+```bash
+npm run build && npm start
+```
+
+When a watched leader hits the PancakeSwap V2 router with a supported swap, you will see logs like:
+
+```text
+mirroring leader router call { leader, correlatesTo, kind }
+dry-run (no on-chain tx) { reference, path }
+```
+
+Press `Ctrl+C` to stop. The shutdown line reports how many follower intents were staged during the session.
+
+---
 
 ## License
 
-MIT — build kindly, disclose risks, and treat other people’s capital with care.
+MIT — build responsibly, disclose risks clearly, and treat other people's capital with care.
