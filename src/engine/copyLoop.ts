@@ -29,7 +29,14 @@ export class CopyTradingLoop {
       kind: intent.kind,
     });
 
-    await this.executor.submit(intent);
-    this.followerTxCount += 1;
+    try {
+      await this.executor.submit(intent);
+      this.followerTxCount += 1;
+    } catch (err) {
+      this.logger.error('follower execution failed', {
+        correlatesTo: intent.correlatesTo,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 }
