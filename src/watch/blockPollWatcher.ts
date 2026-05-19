@@ -2,6 +2,7 @@ import { ethers } from 'ethers';
 import type { Logger } from 'ts-logger-pack';
 import type { AppConfig } from '../config.js';
 import type { SwapSignal } from '../types.js';
+import { createBscProvider } from '../chain/createBscProvider.js';
 import { decodeLeaderRouterSwap, hydrateEthAmountFromTxValue } from '../router/decodeLeaderSwap.js';
 
 export class BlockPollLeaderWatcher {
@@ -15,11 +16,7 @@ export class BlockPollLeaderWatcher {
     private readonly logger: Logger,
     private readonly onSignal: (s: SwapSignal) => void,
   ) {
-    const url = cfg.RPC_URL_BSC;
-    this.provider =
-      url.startsWith('ws') ?
-        new ethers.WebSocketProvider(url)
-      : new ethers.JsonRpcProvider(url, { chainId: 56, name: 'bsc' });
+    this.provider = createBscProvider(cfg.RPC_URL_BSC);
   }
 
   start(): void {

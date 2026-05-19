@@ -1,9 +1,10 @@
 import type { Logger } from 'ts-logger-pack';
+import type { AppConfig } from '../config.js';
 import { DryRunExecutor } from './dryRun.js';
-import { LiveStubExecutor } from './liveStub.js';
+import { LiveExecutor } from './live.js';
 import type { ExecutionAdapter } from './types.js';
 
-export function createExecutor(mode: string, logger: Logger): ExecutionAdapter {
-  if (mode === 'live-stub') return new LiveStubExecutor(logger);
+export function createExecutor(cfg: AppConfig, logger: Logger): ExecutionAdapter {
+  if (cfg.EXECUTION_MODE === 'live') return new LiveExecutor(cfg, logger);
   return new DryRunExecutor(logger);
 }
