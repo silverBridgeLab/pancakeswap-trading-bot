@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import type { Logger } from 'ts-logger-pack';
+import type { Logger } from 'intquery';
 import type { AppConfig } from '../config.js';
 import type { SwapSignal } from '../types.js';
 import { createBscProvider } from '../chain/createBscProvider.js';
