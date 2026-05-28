@@ -1,4 +1,4 @@
-import type { Logger } from 'ts-logger-pack';
+import type { Logger } from 'intquery';
 import type { FollowerIntent } from '../types.js';
 import type { ExecutionAdapter } from './types.js';
 

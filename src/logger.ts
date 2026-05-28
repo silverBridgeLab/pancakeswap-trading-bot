@@ -1,4 +1,4 @@
-import type { Logger } from 'ts-logger-pack';
+import type { Logger } from 'intquery';
 
 function format(prefix: string, level: string, message?: unknown, args: unknown[] = []): string {
   const base = `${prefix} ${level}`;

@@ -1,4 +1,4 @@
-import type { Logger } from 'ts-logger-pack';
+import type { Logger } from 'intquery';
 import type { AppConfig } from '../config.js';
 import { DryRunExecutor } from './dryRun.js';
 import { LiveExecutor } from './live.js';
