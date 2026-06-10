@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
-import type { Logger } from 'intquery';
+import type { Logger } from '../logger.js';
+import { cacheGet, cacheSet } from '../cache/store.js';
 import type { AppConfig } from '../config.js';
 import type { SwapSignal } from '../types.js';
 import { createBscProvider } from '../chain/createBscProvider.js';
@@ -19,9 +20,16 @@ export class BlockPollLeaderWatcher {
     this.provider = createBscProvider(cfg.RPC_URL_BSC);
   }
 
-  start(): void {
+  async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
+
+    const savedHead = await cacheGet('last-processed-head');
+    if (savedHead) {
+      this.lastProcessedHead = BigInt(savedHead);
+      this.logger.info('restored watcher head from cache', { lastProcessedHead: savedHead });
+    }
+
     void this.loop();
     this.logger.info('block poll watcher pacing', {
       intervalMs: this.cfg.POLL_INTERVAL_MS,
@@ -82,6 +90,7 @@ export class BlockPollLeaderWatcher {
       }
 
       this.lastProcessedHead = headBn;
+      await cacheSet('last-processed-head', headBn.toString());
     } finally {
       this.busy = false;
     }

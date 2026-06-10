@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import type { Logger } from 'intquery';
+import type { Logger } from '../logger.js';
 import type { AppConfig } from '../config.js';
 import type { FollowerIntent } from '../types.js';
 import { createBscProvider, normalizePrivateKey } from '../chain/createBscProvider.js';

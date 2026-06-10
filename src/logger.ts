@@ -1,14 +1,27 @@
-import type { Logger } from 'intquery';
+export interface Logger {
+  trace(message?: unknown, ...optionalParams: unknown[]): void;
+  debug(message?: unknown, ...optionalParams: unknown[]): void;
+  info(message?: unknown, ...optionalParams: unknown[]): void;
+  warn(message?: unknown, ...optionalParams: unknown[]): void;
+  error(message?: unknown, ...optionalParams: unknown[]): void;
+}
+
+function formatValue(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (value instanceof Error) return value.message;
+  if (typeof value === 'object' && value !== null) return JSON.stringify(value);
+  return String(value);
+}
 
 function format(prefix: string, level: string, message?: unknown, args: unknown[] = []): string {
   const base = `${prefix} ${level}`;
   if (message === undefined) return base;
-  return [base, message, ...args].join(' ');
+  return `${base} ${[formatValue(message), ...args.map(formatValue)].join(' ')}`;
 }
 
 export function createAppLogger(scope: string, verbose: boolean): Logger {
   const prefix = `[${scope}]`;
-  const implementation: Logger = {
+  return {
     trace: (message?: unknown, ...optionalParams: unknown[]) => {
       if (!verbose) return;
       console.log(format(prefix, '[trace]', message, optionalParams));
@@ -27,5 +40,4 @@ export function createAppLogger(scope: string, verbose: boolean): Logger {
       console.error(format(prefix, '[error]', message, optionalParams));
     },
   };
-  return implementation;
 }

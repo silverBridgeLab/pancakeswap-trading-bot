@@ -19,7 +19,7 @@ Most “copy trading bot” tutorials skip the interesting part: **how do you ac
 | Learn how router calldata is structured | Decoders for `swapExact*` on the canonical Pancake V2 router |
 | Experiment without risking keys | `dry-run` executor that logs intents only |
 | Extend toward production safely | `ExecutionAdapter` with a live `ethers.Wallet` executor that signs router swaps |
-| Restart without missing recent history | Configurable block lookback on startup |
+| Restart without missing recent history | Configurable block lookback + optional Redis cache for block head and seen leader txs |
 | Tune how aggressively you mirror size | Basis-point style `SIZE_NUMERATOR_BP` / `SIZE_DENOMINATOR_BP` |
 
 ---
