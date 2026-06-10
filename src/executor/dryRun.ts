@@ -1,4 +1,4 @@
-import type { Logger } from 'intquery';
+import type { Logger } from '../logger.js';
 import type { FollowerIntent } from '../types.js';
 import type { ExecutionAdapter } from './types.js';
 

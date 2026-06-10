@@ -1,11 +1,12 @@
-import type { Logger } from 'intquery';
+import type { Logger } from '../logger.js';
+import { cacheHas, cacheSet } from '../cache/store.js';
 import type { AppConfig } from '../config.js';
 import type { SwapSignal } from '../types.js';
 import { scaleSignalToIntent } from './sizing.js';
 import type { ExecutionAdapter } from '../executor/types.js';
 
 export class CopyTradingLoop {
-  private seen = new Set<string>();
+  private readonly seen = new Set<string>();
   public followerTxCount = 0;
 
   constructor(
@@ -15,8 +16,11 @@ export class CopyTradingLoop {
   ) {}
 
   async handle(signal: SwapSignal): Promise<void> {
-    if (this.seen.has(signal.correlatesTo)) return;
+    if (this.seen.has(signal.correlatesTo) || (await cacheHas(`seen:${signal.correlatesTo}`))) {
+      return;
+    }
     this.seen.add(signal.correlatesTo);
+    await cacheSet(`seen:${signal.correlatesTo}`, '1');
 
     const intent = scaleSignalToIntent(
       signal,

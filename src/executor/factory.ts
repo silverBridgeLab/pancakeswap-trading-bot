@@ -1,4 +1,4 @@
-import type { Logger } from 'intquery';
+import type { Logger } from '../logger.js';
 import type { AppConfig } from '../config.js';
 import { DryRunExecutor } from './dryRun.js';
 import { LiveExecutor } from './live.js';
